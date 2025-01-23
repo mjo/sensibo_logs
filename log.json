@@ -26,5 +26,19 @@
                 "temperatureUnit": "C"
             }
         }
+    },
+    {
+        "timestamp": "2025-01-23 18:28:31",
+        "indoor_temp": 22.3,
+        "outdoor_temp": -12.6,
+        "mode_status": {
+            "acState": {
+                "on": true,
+                "mode": "heat",
+                "fanLevel": "medium_high",
+                "targetTemperature": 25,
+                "temperatureUnit": "C"
+            }
+        }
     }
 ]
