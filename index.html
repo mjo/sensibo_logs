@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+<body>
+    <h1>Temperature Data</h1>
+    <canvas id="temperatureChart" width="400" height="200"></canvas>
+    <script>
+        fetch('mode_status.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Fetched data:', data); // Debugging log
+                const timestamps = data.map(entry => entry.timestamp);
+                const indoorTemps = data.map(entry => entry.indoor_temp);
+                const outdoorTemps = data.map(entry => entry.outdoor_temp);
+                const targetTemps = data.map(entry => entry.mode_status.acState.targetTemperature);
+
+                console.log('Timestamps:', timestamps); // Debugging log
+                console.log('Indoor Temps:', indoorTemps); // Debugging log
+                console.log('Outdoor Temps:', outdoorTemps); // Debugging log
+                console.log('Target Temps:', targetTemps); // Debugging log
+
+                const ctx = document.getElementById('temperatureChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: timestamps,
+                        datasets: [
+                            {
+                                label: 'Indoor Temperature (°C)',
+                                data: indoorTemps,
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1,
+                                fill: false
+                            },
+                            {
+                                label: 'Outdoor Temperature (°C)',
+                                data: outdoorTemps,
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1,
+                                fill: false
+                            },
+                            {
+                                label: 'Target Temperature (°C)',
+                                data: targetTemps,
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: 'minute'
+                                }
+                            },
+                            y: {
+                                beginAtZero: false
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Error fetching the JSON data:', error));
+    </script>
+</body>
+</html>
