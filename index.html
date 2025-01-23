@@ -11,7 +11,7 @@
     <h1>Temperature Data</h1>
     <canvas id="temperatureChart" width="400" height="200"></canvas>
     <script>
-        fetch('mode_status.json')
+        fetch('log.json')
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok ' + response.statusText);
