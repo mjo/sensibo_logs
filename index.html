@@ -64,7 +64,12 @@
                             x: {
                                 type: 'time',
                                 time: {
-                                    unit: 'minute'
+                                    unit: 'minute',
+                                    tooltipFormat: 'HH:mm', // 24-hour format for tooltips
+                                    displayFormats: {
+                                        minute: 'HH:mm', // 24-hour format for x-axis labels
+                                        hour: 'HH:mm'
+                                    }
                                 }
                             },
                             y: {
