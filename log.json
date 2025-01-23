@@ -1,13 +1,13 @@
 [
     {
-        "timestamp": "2025-01-23 15:25:56",
+        "timestamp": "2025-01-23 15:46:59",
         "indoor_temp": 23,
-        "outdoor_temp": -15.3,
+        "outdoor_temp": -14.7,
         "mode_status": {
             "acState": {
                 "on": true,
                 "mode": "heat",
-                "fanLevel": "high",
+                "fanLevel": "medium_high",
                 "targetTemperature": 26,
                 "temperatureUnit": "C"
             }
