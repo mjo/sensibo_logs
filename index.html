@@ -23,12 +23,14 @@
                 const timestamps = data.map(entry => entry.timestamp);
                 const indoorTemps = data.map(entry => entry.indoor_temp);
                 const outdoorTemps = data.map(entry => entry.outdoor_temp);
-                const targetTemps = data.map(entry => entry.mode_status.acState.targetTemperature);
+                const indoorTargetTemps = data.map(entry => entry.indoor_target_temp);
+                const indoorWantedTemps = data.map(entry => entry.indoor_wanted_temp);
 
                 console.log('Timestamps:', timestamps); // Debugging log
                 console.log('Indoor Temps:', indoorTemps); // Debugging log
                 console.log('Outdoor Temps:', outdoorTemps); // Debugging log
-                console.log('Target Temps:', targetTemps); // Debugging log
+                console.log('Indoor Target Temps:', indoorTargetTemps); // Debugging log
+                console.log('Indoor Wanted Temps:', indoorWantedTemps); // Debugging log
 
                 const ctx = document.getElementById('temperatureChart').getContext('2d');
                 new Chart(ctx, {
@@ -51,9 +53,16 @@
                                 fill: false
                             },
                             {
-                                label: 'Target Temperature (°C)',
-                                data: targetTemps,
+                                label: 'Indoor Target Temperature (°C)',
+                                data: indoorTargetTemps,
                                 borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1,
+                                fill: false
+                            },
+                            {
+                                label: 'Indoor Wanted Temperature (°C)',
+                                data: indoorWantedTemps,
+                                borderColor: 'rgba(255, 206, 86, 1)',
                                 borderWidth: 1,
                                 fill: false
                             }
@@ -64,16 +73,24 @@
                             x: {
                                 type: 'time',
                                 time: {
-                                    unit: 'minute',
+                                    unit: 'hour',
                                     tooltipFormat: 'HH:mm', // 24-hour format for tooltips
                                     displayFormats: {
                                         minute: 'HH:mm', // 24-hour format for x-axis labels
                                         hour: 'HH:mm'
                                     }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Time'
                                 }
                             },
                             y: {
-                                beginAtZero: false
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: 'Temperature (°C)'
+                                }
                             }
                         }
                     }
