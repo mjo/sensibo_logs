@@ -23,7 +23,7 @@
                 const timestamps = data.map(entry => entry.timestamp);
                 const indoorTemps = data.map(entry => entry.indoor_temp);
                 const outdoorTemps = data.map(entry => entry.outdoor_temp);
-                const indoorTargetTemps = data.map(entry => entry.indoor_target_temp);
+                const indoorTargetTemps = data.map(entry => entry.json_data.acState.targetTemperature);
                 const indoorWantedTemps = data.map(entry => entry.indoor_wanted_temp);
 
                 console.log('Timestamps:', timestamps); // Debugging log
@@ -41,28 +41,28 @@
                             {
                                 label: 'Indoor Temperature (°C)',
                                 data: indoorTemps,
-                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderColor: 'rgba(255, 0, 0, 1)', // Red
                                 borderWidth: 1,
                                 fill: false
                             },
                             {
                                 label: 'Outdoor Temperature (°C)',
                                 data: outdoorTemps,
-                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderColor: 'rgba(0, 0, 255, 1)', // Blue
                                 borderWidth: 1,
                                 fill: false
                             },
                             {
                                 label: 'Indoor Target Temperature (°C)',
                                 data: indoorTargetTemps,
-                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderColor: 'rgba(255, 192, 203, 1)', // Pink
                                 borderWidth: 1,
                                 fill: false
                             },
                             {
                                 label: 'Indoor Wanted Temperature (°C)',
                                 data: indoorWantedTemps,
-                                borderColor: 'rgba(255, 206, 86, 1)',
+                                borderColor: 'rgba(255, 165, 0, 1)', // Orange
                                 borderWidth: 1,
                                 fill: false
                             }
