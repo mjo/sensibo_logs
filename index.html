@@ -20,11 +20,21 @@
             })
             .then(data => {
                 console.log('Fetched data:', data); // Debugging log
-                const timestamps = data.map(entry => entry.timestamp);
-                const indoorTemps = data.map(entry => entry.indoor_temp);
-                const outdoorTemps = data.map(entry => entry.outdoor_temp);
-                const indoorTargetTemps = data.map(entry => entry.json_data.acState.targetTemperature);
-                const indoorWantedTemps = data.map(entry => entry.indoor_wanted_temp);
+
+                // Filter out entries with missing data
+                const validData = data.filter(entry => 
+                    entry.timestamp && 
+                    entry.indoor_temp !== undefined && 
+                    entry.outdoor_temp !== undefined && 
+                    entry.json_data?.acState?.targetTemperature !== undefined && 
+                    entry.indoor_wanted_temp !== undefined
+                );
+
+                const timestamps = validData.map(entry => entry.timestamp);
+                const indoorTemps = validData.map(entry => entry.indoor_temp);
+                const outdoorTemps = validData.map(entry => entry.outdoor_temp);
+                const indoorTargetTemps = validData.map(entry => entry.json_data.acState.targetTemperature);
+                const indoorWantedTemps = validData.map(entry => entry.indoor_wanted_temp);
 
                 console.log('Timestamps:', timestamps); // Debugging log
                 console.log('Indoor Temps:', indoorTemps); // Debugging log
