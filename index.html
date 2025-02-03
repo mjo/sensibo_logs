@@ -9,8 +9,13 @@
 </head>
 <body>
     <h1>Temperature Data</h1>
+    <button onclick="updateChart('daily')">Daily View</button>
+    <button onclick="updateChart('weekly')">Weekly View</button>
     <canvas id="temperatureChart" width="400" height="200"></canvas>
     <script>
+        let chart;
+        let allData;
+
         fetch('log.json')
             .then(response => {
                 if (!response.ok) {
@@ -20,116 +25,108 @@
             })
             .then(data => {
                 console.log('Fetched data:', data); // Debugging log
+                allData = data;
+                updateChart('daily'); // Default view
+            })
+            .catch(error => console.error('Error fetching the JSON data:', error));
 
-                // Initialize arrays for each dataset
-                const timestamps = [];
-                const indoorTemps = [];
-                const outdoorTemps = [];
-                const indoorTargetTemps = [];
-                const indoorWantedTemps = [];
+        function updateChart(view) {
+            const now = new Date();
+            let filteredData;
 
-                // Populate arrays with available data
-                data.forEach(entry => {
-                    if (entry.timestamp) {
-                        timestamps.push(entry.timestamp);
-                    }
-                    if (entry.indoor_temp !== undefined) {
-                        indoorTemps.push(entry.indoor_temp);
-                    } else {
-                        indoorTemps.push(null); // Placeholder for missing data
-                    }
-                    if (entry.outdoor_temp !== undefined) {
-                        outdoorTemps.push(entry.outdoor_temp);
-                    } else {
-                        outdoorTemps.push(null); // Placeholder for missing data
-                    }
-                    if (entry.json_data?.acState?.targetTemperature !== undefined) {
-                        indoorTargetTemps.push(entry.json_data.acState.targetTemperature);
-                    } else {
-                        indoorTargetTemps.push(null); // Placeholder for missing data
-                    }
-                    if (entry.indoor_wanted_temp !== undefined) {
-                        indoorWantedTemps.push(entry.indoor_wanted_temp);
-                    } else {
-                        indoorWantedTemps.push(null); // Placeholder for missing data
-                    }
-                });
+            if (view === 'daily') {
+                const oneDayAgo = new Date(now);
+                oneDayAgo.setDate(now.getDate() - 1);
+                filteredData = allData.filter(entry => new Date(entry.timestamp) >= oneDayAgo);
+            } else if (view === 'weekly') {
+                const oneWeekAgo = new Date(now);
+                oneWeekAgo.setDate(now.getDate() - 7);
+                filteredData = allData.filter(entry => new Date(entry.timestamp) >= oneWeekAgo);
+            }
 
-                console.log('Timestamps:', timestamps); // Debugging log
-                console.log('Indoor Temps:', indoorTemps); // Debugging log
-                console.log('Outdoor Temps:', outdoorTemps); // Debugging log
-                console.log('Indoor Target Temps:', indoorTargetTemps); // Debugging log
-                console.log('Indoor Wanted Temps:', indoorWantedTemps); // Debugging log
+            const timestamps = filteredData.map(entry => entry.timestamp);
+            const indoorTemps = filteredData.map(entry => entry.indoor_temp);
+            const outdoorTemps = filteredData.map(entry => entry.outdoor_temp);
+            const indoorTargetTemps = filteredData.map(entry => entry.json_data?.acState?.targetTemperature);
+            const indoorWantedTemps = filteredData.map(entry => entry.indoor_wanted_temp);
 
-                const ctx = document.getElementById('temperatureChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: timestamps,
-                        datasets: [
-                            {
-                                label: 'Indoor Temperature (°C)',
-                                data: indoorTemps,
-                                borderColor: 'rgba(255, 0, 0, 1)', // Red
-                                borderWidth: 1,
-                                fill: false,
-                                spanGaps: true
+            console.log('Timestamps:', timestamps); // Debugging log
+            console.log('Indoor Temps:', indoorTemps); // Debugging log
+            console.log('Outdoor Temps:', outdoorTemps); // Debugging log
+            console.log('Indoor Target Temps:', indoorTargetTemps); // Debugging log
+            console.log('Indoor Wanted Temps:', indoorWantedTemps); // Debugging log
+
+            const ctx = document.getElementById('temperatureChart').getContext('2d');
+            if (chart) {
+                chart.destroy();
+            }
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timestamps,
+                    datasets: [
+                        {
+                            label: 'Indoor Temperature (°C)',
+                            data: indoorTemps,
+                            borderColor: 'rgba(255, 0, 0, 1)', // Red
+                            borderWidth: 1,
+                            fill: false,
+                            spanGaps: true
+                        },
+                        {
+                            label: 'Outdoor Temperature (°C)',
+                            data: outdoorTemps,
+                            borderColor: 'rgba(0, 0, 255, 1)', // Blue
+                            borderWidth: 1,
+                            fill: false,
+                            spanGaps: true
+                        },
+                        {
+                            label: 'Indoor Target Temperature (°C)',
+                            data: indoorTargetTemps,
+                            borderColor: 'rgba(255, 192, 203, 1)', // Pink
+                            borderWidth: 1,
+                            fill: false,
+                            spanGaps: true
+                        },
+                        {
+                            label: 'Indoor Wanted Temperature (°C)',
+                            data: indoorWantedTemps,
+                            borderColor: 'rgba(255, 165, 0, 1)', // Orange
+                            borderWidth: 1,
+                            fill: false,
+                            spanGaps: true
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: view === 'daily' ? 'hour' : 'day',
+                                tooltipFormat: 'HH:mm', // 24-hour format for tooltips
+                                displayFormats: {
+                                    hour: 'HH:mm',
+                                    day: 'MMM dd'
+                                }
                             },
-                            {
-                                label: 'Outdoor Temperature (°C)',
-                                data: outdoorTemps,
-                                borderColor: 'rgba(0, 0, 255, 1)', // Blue
-                                borderWidth: 1,
-                                fill: false,
-                                spanGaps: true
-                            },
-                            {
-                                label: 'Indoor Target Temperature (°C)',
-                                data: indoorTargetTemps,
-                                borderColor: 'rgba(255, 192, 203, 1)', // Pink
-                                borderWidth: 1,
-                                fill: false,
-                                spanGaps: true
-                            },
-                            {
-                                label: 'Indoor Wanted Temperature (°C)',
-                                data: indoorWantedTemps,
-                                borderColor: 'rgba(255, 165, 0, 1)', // Orange
-                                borderWidth: 1,
-                                fill: false,
-                                spanGaps: true
+                            title: {
+                                display: true,
+                                text: 'Time'
                             }
-                        ]
-                    },
-                    options: {
-                        scales: {
-                            x: {
-                                type: 'time',
-                                time: {
-                                    unit: 'hour',
-                                    tooltipFormat: 'HH:mm', // 24-hour format for tooltips
-                                    displayFormats: {
-                                        minute: 'HH:mm', // 24-hour format for x-axis labels
-                                        hour: 'HH:mm'
-                                    }
-                                },
-                                title: {
-                                    display: true,
-                                    text: 'Time'
-                                }
-                            },
-                            y: {
-                                beginAtZero: false,
-                                title: {
-                                    display: true,
-                                    text: 'Temperature (°C)'
-                                }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
                             }
                         }
                     }
-                });
-            })
-            .catch(error => console.error('Error fetching the JSON data:', error));
+                }
+            });
+        }
     </script>
 </body>
 </html>
