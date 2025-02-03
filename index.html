@@ -44,18 +44,20 @@
             let filteredData;
 
             if (view === 'daily') {
-                const oneDayAgo = new Date(startDate);
-                oneDayAgo.setDate(startDate.getDate() - 1);
+                const nextDay = new Date(startDate);
+                nextDay.setDate(startDate.getDate() + 1);
                 filteredData = allData.filter(entry => {
                     const entryDate = new Date(entry.timestamp);
-                    return entryDate >= oneDayAgo && entryDate <= startDate;
+                    return entryDate >= startDate && entryDate < nextDay;
                 });
             } else if (view === 'weekly') {
+                const nextDay = new Date(startDate);
+                nextDay.setDate(startDate.getDate() + 1);
                 const oneWeekAgo = new Date(startDate);
-                oneWeekAgo.setDate(startDate.getDate() - 7);
+                oneWeekAgo.setDate(startDate.getDate() - 6);
                 filteredData = allData.filter(entry => {
                     const entryDate = new Date(entry.timestamp);
-                    return entryDate >= oneWeekAgo && entryDate <= startDate;
+                    return entryDate >= oneWeekAgo && entryDate < nextDay;
                 });
             }
 
