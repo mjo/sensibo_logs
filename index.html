@@ -46,11 +46,17 @@
             if (view === 'daily') {
                 const oneDayAgo = new Date(startDate);
                 oneDayAgo.setDate(startDate.getDate() - 1);
-                filteredData = allData.filter(entry => new Date(entry.timestamp) >= oneDayAgo && new Date(entry.timestamp) <= startDate);
+                filteredData = allData.filter(entry => {
+                    const entryDate = new Date(entry.timestamp);
+                    return entryDate >= oneDayAgo && entryDate <= startDate;
+                });
             } else if (view === 'weekly') {
                 const oneWeekAgo = new Date(startDate);
                 oneWeekAgo.setDate(startDate.getDate() - 7);
-                filteredData = allData.filter(entry => new Date(entry.timestamp) >= oneWeekAgo && new Date(entry.timestamp) <= startDate);
+                filteredData = allData.filter(entry => {
+                    const entryDate = new Date(entry.timestamp);
+                    return entryDate >= oneWeekAgo && entryDate <= startDate;
+                });
             }
 
             const timestamps = filteredData.map(entry => entry.timestamp);
