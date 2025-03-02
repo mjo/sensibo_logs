@@ -5533,5 +5533,14 @@
         "indoor_prev_target_temp": 22,
         "prev_fan_level": "medium_high",
         "json_data": {}
+    },
+    {
+        "timestamp": "2025-03-02 10:12:13",
+        "indoor_temp": 22.1808333333333,
+        "indoor_wanted_temp": 22,
+        "outdoor_temp": 0.7,
+        "indoor_prev_target_temp": 22,
+        "prev_fan_level": "medium_high",
+        "json_data": {}
     }
 ]
