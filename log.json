@@ -6441,5 +6441,14 @@
                 "temperatureUnit": "C"
             }
         }
+    },
+    {
+        "timestamp": "2025-03-11 20:12:51",
+        "indoor_temp": 22.289166666666656,
+        "indoor_wanted_temp": 22.44,
+        "outdoor_temp": -8.8,
+        "indoor_prev_target_temp": 22,
+        "prev_fan_level": "medium_high",
+        "json_data": {}
     }
 ]
