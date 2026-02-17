@@ -1,22 +1,5 @@
 [
     {
-        "timestamp": "2025-11-15 08:21:03",
-        "indoor_temp": 21.199999999999996,
-        "indoor_wanted_temp": 21.654285714285713,
-        "outdoor_temp": -5.4,
-        "indoor_prev_target_temp": 23,
-        "prev_fan_level": "medium_high",
-        "json_data": {
-            "acState": {
-                "on": true,
-                "mode": "Heat",
-                "fanLevel": "medium_high",
-                "targetTemperature": 24,
-                "temperatureUnit": "C"
-            }
-        }
-    },
-    {
         "timestamp": "2025-11-15 10:17:48",
         "indoor_temp": 21.250000000000004,
         "indoor_wanted_temp": 21.554285714285715,
@@ -13571,6 +13554,23 @@
                 "mode": "Heat",
                 "fanLevel": "medium_high",
                 "targetTemperature": 24,
+                "temperatureUnit": "C"
+            }
+        }
+    },
+    {
+        "timestamp": "2026-02-17 06:12:03",
+        "indoor_temp": 22.462500000000006,
+        "indoor_wanted_temp": 21.695,
+        "outdoor_temp": -7.8,
+        "indoor_prev_target_temp": 24,
+        "prev_fan_level": "medium_high",
+        "json_data": {
+            "acState": {
+                "on": true,
+                "mode": "Heat",
+                "fanLevel": "medium_high",
+                "targetTemperature": 23,
                 "temperatureUnit": "C"
             }
         }
