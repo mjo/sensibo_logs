@@ -1,14 +1,5 @@
 [
     {
-        "timestamp": "2026-02-07 00:15:22",
-        "indoor_temp": 21.955000000000005,
-        "indoor_wanted_temp": 21.8475,
-        "outdoor_temp": -13.9,
-        "indoor_prev_target_temp": 31,
-        "prev_fan_level": "high",
-        "json_data": {}
-    },
-    {
         "timestamp": "2026-02-07 03:17:16",
         "indoor_temp": 22.505000000000013,
         "indoor_wanted_temp": 21.8225,
@@ -12771,6 +12762,15 @@
         "indoor_temp": 21.399999999999984,
         "indoor_wanted_temp": 21.5,
         "outdoor_temp": 12.3,
+        "indoor_prev_target_temp": 21,
+        "prev_fan_level": "medium_high",
+        "json_data": {}
+    },
+    {
+        "timestamp": "2026-05-10 19:43:18",
+        "indoor_temp": 21.404999999999987,
+        "indoor_wanted_temp": 21.5,
+        "outdoor_temp": 12.6,
         "indoor_prev_target_temp": 21,
         "prev_fan_level": "medium_high",
         "json_data": {}
