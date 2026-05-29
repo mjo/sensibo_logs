@@ -1,14 +1,5 @@
 [
     {
-        "timestamp": "2026-02-20 22:21:45",
-        "indoor_temp": 22.000000000000004,
-        "indoor_wanted_temp": 21.855,
-        "outdoor_temp": -14.2,
-        "indoor_prev_target_temp": 31,
-        "prev_fan_level": "high",
-        "json_data": {}
-    },
-    {
         "timestamp": "2026-02-21 00:17:51",
         "indoor_temp": 22.342499999999994,
         "indoor_wanted_temp": 21.855,
@@ -12766,5 +12757,14 @@
                 "temperatureUnit": "C"
             }
         }
+    },
+    {
+        "timestamp": "2026-05-29 14:20:45",
+        "indoor_temp": 21.532500000000006,
+        "indoor_wanted_temp": 21.5,
+        "outdoor_temp": 13.7,
+        "indoor_prev_target_temp": 21,
+        "prev_fan_level": "medium_high",
+        "json_data": {}
     }
 ]
