@@ -101,15 +101,19 @@
             currentView = view;
             const now = new Date();
             const startDateInput = document.getElementById('startDate');
-            let startDate = new Date(startDateInput.value);
+            let startDate = new Date(startDateInput.value + 'T00:00'); // Local midnight
             if (isNaN(startDate)) {
                 startDate = now;
             }
             let filteredData;
+            let rangeStart;
+            let rangeEnd;
 
             if (view === 'daily') {
                 const nextDay = new Date(startDate);
                 nextDay.setDate(startDate.getDate() + 1);
+                rangeStart = startDate;
+                rangeEnd = nextDay;
                 filteredData = allData.filter(entry => {
                     const entryDate = new Date(entry.timestamp);
                     return entryDate >= startDate && entryDate < nextDay;
@@ -119,6 +123,8 @@
                 nextDay.setDate(startDate.getDate() + 1);
                 const oneWeekAgo = new Date(startDate);
                 oneWeekAgo.setDate(startDate.getDate() - 6);
+                rangeStart = oneWeekAgo;
+                rangeEnd = nextDay;
                 filteredData = allData.filter(entry => {
                     const entryDate = new Date(entry.timestamp);
                     return entryDate >= oneWeekAgo && entryDate < nextDay;
@@ -185,6 +191,8 @@
                     scales: {
                         x: {
                             type: 'time',
+                            min: rangeStart,
+                            max: rangeEnd,
                             time: {
                                 unit: view === 'daily' ? 'hour' : 'day',
                                 tooltipFormat: 'HH:mm', // 24-hour format for tooltips
