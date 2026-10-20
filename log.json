@@ -1,14 +1,5 @@
 [
     {
-        "timestamp": "2026-02-27 08:42:20",
-        "indoor_temp": 21.434999999999995,
-        "indoor_wanted_temp": 21.5975,
-        "outdoor_temp": -3.9,
-        "indoor_prev_target_temp": 22,
-        "prev_fan_level": "medium_high",
-        "json_data": {}
-    },
-    {
         "timestamp": "2026-02-27 10:32:57",
         "indoor_temp": 21.4,
         "indoor_wanted_temp": 21.58,
@@ -12855,6 +12846,23 @@
         "prev_on": true,
         "target_temp_float": 21.35124999999996,
         "indoor_error": 0.06249999999999645,
+        "json_data": {}
+    },
+    {
+        "timestamp": "2026-10-20 23:03:25",
+        "indoor_temp": 21.327499999999993,
+        "indoor_humidity": 46.71499999999998,
+        "indoor_feels_like_temp": 21.5,
+        "indoor_current_temp": 21.5,
+        "indoor_wanted_temp": 21.5,
+        "outdoor_temp": 6.0,
+        "outdoor_forecast_temp": 5.8,
+        "indoor_prev_target_temp": 21,
+        "prev_fan_level": "medium_high",
+        "prev_mode": "heat",
+        "prev_on": true,
+        "target_temp_float": 21.42499999999996,
+        "indoor_error": 0.17250000000000654,
         "json_data": {}
     }
 ]
