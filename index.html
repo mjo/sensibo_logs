@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Temperature Data</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <!-- Pinned versions so that a new major release of a library does not break the page -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -85,6 +86,11 @@
             })
             .catch(error => console.error('Error fetching the JSON data:', error));
 
+        // Log timestamps are "YYYY-MM-DD HH:MM:SS" local time; the ISO form with "T" parses in all browsers
+        function parseTimestamp(timestamp) {
+            return new Date(timestamp.replace(' ', 'T'));
+        }
+
         function getCurrentDate() {
             const today = new Date();
             const dd = String(today.getDate()).padStart(2, '0');
@@ -115,7 +121,7 @@
                 rangeStart = startDate;
                 rangeEnd = nextDay;
                 filteredData = allData.filter(entry => {
-                    const entryDate = new Date(entry.timestamp);
+                    const entryDate = parseTimestamp(entry.timestamp);
                     return entryDate >= startDate && entryDate < nextDay;
                 });
             } else if (view === 'weekly') {
@@ -126,15 +132,16 @@
                 rangeStart = oneWeekAgo;
                 rangeEnd = nextDay;
                 filteredData = allData.filter(entry => {
-                    const entryDate = new Date(entry.timestamp);
+                    const entryDate = parseTimestamp(entry.timestamp);
                     return entryDate >= oneWeekAgo && entryDate < nextDay;
                 });
             }
 
-            const timestamps = filteredData.map(entry => entry.timestamp);
+            const timestamps = filteredData.map(entry => parseTimestamp(entry.timestamp));
             const indoorTemps = filteredData.map(entry => entry.indoor_temp);
             const outdoorTemps = filteredData.map(entry => entry.outdoor_temp);
-            const indoorTargetTemps = filteredData.map(entry => entry.json_data?.acState?.targetTemperature);
+            // The heat pump target after the run: the target sent to Sensibo, or the unchanged previous target if nothing was sent
+            const indoorTargetTemps = filteredData.map(entry => entry.json_data?.acState?.targetTemperature ?? entry.indoor_prev_target_temp);
             const indoorWantedTemps = filteredData.map(entry => entry.indoor_wanted_temp);
 
             console.log('Timestamps:', timestamps); // Debugging log
@@ -171,7 +178,7 @@
                         {
                             label: 'Heat Pump Target Temperature (°C)',
                             data: indoorTargetTemps,
-                            borderColor: 'rgba(255, 192, 203, 1)', // Pink
+                            borderColor: 'rgba(199, 21, 133, 1)', // Magenta, light pink was hard to see on white
                             borderWidth: 1,
                             fill: false,
                             spanGaps: true
