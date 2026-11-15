@@ -1,229 +1,384 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Temperature Data</title>
+    <meta name="color-scheme" content="light dark">
+    <title>Lämpöpumppu</title>
     <!-- Major versions only: minor and patch updates are picked up automatically, a breaking major release is not -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
     <style>
-        * {
-            box-sizing: border-box;
+        :root {
+            --bg: #f4f5f7;
+            --surface: #ffffff;
+            --text: #1d1f23;
+            --muted: #5f6672;
+            --border: #e1e4e8;
+            --accent: #2563eb;
+            --ok: #15803d;
+            --ok-bg: #dcfce7;
+            --warn: #a16207;
+            --warn-bg: #fef9c3;
+            --bad: #b91c1c;
+            --bad-bg: #fee2e2;
+            --indoor: #dc2626;
+            --target: #9333ea;
+            --outdoor: #2563eb;
+            --band: rgba(22, 163, 74, 0.12);
+            --grid: rgba(0, 0, 0, 0.07);
         }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #111317;
+                --surface: #1b1e24;
+                --text: #e8eaed;
+                --muted: #9aa1ad;
+                --border: #2c3038;
+                --accent: #60a5fa;
+                --ok: #4ade80;
+                --ok-bg: rgba(74, 222, 128, 0.15);
+                --warn: #facc15;
+                --warn-bg: rgba(250, 204, 21, 0.15);
+                --bad: #f87171;
+                --bad-bg: rgba(248, 113, 113, 0.15);
+                --indoor: #f87171;
+                --target: #c084fc;
+                --outdoor: #60a5fa;
+                --band: rgba(74, 222, 128, 0.12);
+                --grid: rgba(255, 255, 255, 0.08);
+            }
+        }
+
+        * { box-sizing: border-box; }
 
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.4;
         }
 
-        h1 {
-            font-size: 1.5em;
-            text-align: center;
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 16px;
+            display: grid;
+            gap: 16px;
         }
 
-        label, input, button {
-            margin: 10px 0;
-            width: 90%;
-            max-width: 400px;
+        h1 { font-size: 1.25rem; margin: 4px 0 0; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
         }
 
-        .chart-container {
-            position: relative;
-            width: 90%;
-            max-width: 400px;
-            height: 200px;
+        /* Status card */
+        .status {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
         }
-
-        @media (max-width: 600px) and (orientation: portrait) {
-            h1 {
-                font-size: 1.2em;
-            }
-
-            label, input, button {
-                width: 100%;
-                font-size: 1em;
-            }
-
-            .chart-container {
-                width: 100%;
-                height: 300px; /* Increase height for portrait mode */
-            }
+        @media (min-width: 720px) {
+            .status { grid-template-columns: auto 1fr; align-items: center; }
         }
+        .indoor-value { font-size: 3.2rem; font-weight: 650; line-height: 1; }
+        .indoor-label { color: var(--muted); font-size: 0.9rem; margin-bottom: 6px; }
+        .chip {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .chip.ok { color: var(--ok); background: var(--ok-bg); }
+        .chip.warn { color: var(--warn); background: var(--warn-bg); }
+        .chip.bad { color: var(--bad); background: var(--bad-bg); }
+        .facts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+        }
+        .fact-label { color: var(--muted); font-size: 0.85rem; }
+        .fact-value { font-size: 1.25rem; font-weight: 600; }
+        .alerts { grid-column: 1 / -1; display: grid; gap: 8px; }
+        .alert {
+            padding: 10px 12px;
+            border-radius: 10px;
+            color: var(--bad);
+            background: var(--bad-bg);
+            font-weight: 500;
+        }
+        .alert.warn { color: var(--warn); background: var(--warn-bg); }
+
+        /* Range selector */
+        .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .segmented {
+            display: inline-flex;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 3px;
+        }
+        .segmented button {
+            font: inherit;
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            min-height: 40px;
+        }
+        .segmented button[aria-pressed="true"] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12); }
+        .segmented button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        .chart-wrap { position: relative; height: 380px; }
+        @media (max-width: 600px) { .chart-wrap { height: 320px; } }
+
+        /* Stats */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+        .stat-value { font-size: 1.5rem; font-weight: 650; }
+        .stat-label { color: var(--muted); font-size: 0.85rem; }
+
+        footer { color: var(--muted); font-size: 0.85rem; text-align: center; padding-bottom: 8px; }
+        .error { color: var(--bad); }
     </style>
 </head>
 <body>
-    <h1>Temperature Data</h1>
-    <label for="startDate">Select Start Date:</label>
-    <input type="date" id="startDate" name="startDate" onchange="updateChart(currentView)">
-    <button onclick="updateChart('daily')">Daily View</button>
-    <button onclick="updateChart('weekly')">Weekly View</button>
-    <div class="chart-container">
-        <canvas id="temperatureChart"></canvas>
-    </div>
-    <script>
-        let chart;
-        let allData;
-        let currentView = 'daily';
+<main>
+    <h1>Lämpöpumppu</h1>
 
-        fetch('log.json')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Fetched data:', data); // Debugging log
-                allData = data;
-                document.getElementById('startDate').value = getCurrentDate(); // Set default date to current date
-                updateChart('daily'); // Default view
-            })
-            .catch(error => console.error('Error fetching the JSON data:', error));
+    <section class="card status" aria-live="polite" aria-label="Nykytilanne">
+        <div>
+            <div class="indoor-label">Sisälämpö</div>
+            <div class="indoor-value" id="indoorValue">–</div>
+            <span class="chip" id="deviationChip"></span>
+        </div>
+        <div class="facts">
+            <div><div class="fact-label">Tavoite</div><div class="fact-value" id="wantedValue">–</div></div>
+            <div><div class="fact-label">Pumpun asetus</div><div class="fact-value" id="pumpValue">–</div></div>
+            <div><div class="fact-label">Ulkona</div><div class="fact-value" id="outdoorValue">–</div></div>
+            <div><div class="fact-label">Viimeisin ajo</div><div class="fact-value" id="lastRunValue">–</div></div>
+        </div>
+        <div class="alerts" id="alerts"></div>
+    </section>
 
-        // Log timestamps are "YYYY-MM-DD HH:MM:SS" local time; the ISO form with "T" parses in all browsers
-        function parseTimestamp(timestamp) {
-            return new Date(timestamp.replace(' ', 'T'));
+    <section class="card">
+        <div class="toolbar">
+            <strong>Lämpötilat</strong>
+            <div class="segmented" role="group" aria-label="Aikaväli">
+                <button type="button" data-hours="24">24 h</button>
+                <button type="button" data-hours="168">7 vrk</button>
+                <button type="button" data-hours="720">30 vrk</button>
+            </div>
+        </div>
+        <div class="chart-wrap">
+            <canvas id="chart" role="img" aria-label="Sisälämpö, tavoitealue, pumpun asetus ja ulkolämpö valitulla aikavälillä"></canvas>
+        </div>
+    </section>
+
+    <section class="card stats" aria-label="Tunnusluvut valitulla aikavälillä">
+        <div><div class="stat-value" id="statInBand">–</div><div class="stat-label">ajoista tavoitteessa ±0,3 °C</div></div>
+        <div><div class="stat-value" id="statMean">–</div><div class="stat-label">keskimäärin tavoitteesta</div></div>
+        <div><div class="stat-value" id="statCommands">–</div><div class="stat-label">komentoa pumpulle</div></div>
+        <div><div class="stat-value" id="statRuns">–</div><div class="stat-label">ajoa vuorokaudessa</div></div>
+    </section>
+
+    <footer id="footer">Ladataan…</footer>
+</main>
+
+<script>
+    const BAND = 0.3;                 // Target band ± °C
+    const STALE_HOURS = 8;            // Warn when the last run is older than this
+    const REFRESH_MS = 10 * 60 * 1000;
+    const nf = new Intl.NumberFormat('fi-FI', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const pct = new Intl.NumberFormat('fi-FI', { style: 'percent', maximumFractionDigits: 0 });
+
+    let entries = [];
+    let chart;
+    let rangeHours = 24;
+    try { rangeHours = Number(localStorage.getItem('rangeHours')) || 24; } catch (e) { /* Private mode */ }
+
+    // Log timestamps are local "YYYY-MM-DD HH:MM:SS"; the ISO form with "T" parses in all browsers
+    const parseTime = timestamp => new Date(timestamp.replace(' ', 'T'));
+    const temp = value => value == null ? '–' : `${nf.format(value)} °C`;
+    const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+    // The heat pump target after a run: the target sent to Sensibo, or the unchanged previous target
+    const pumpTarget = entry => entry.json_data?.acState?.targetTemperature ?? entry.indoor_prev_target_temp;
+    const isHeating = entry => entry.prev_on === true && String(entry.prev_mode).toLowerCase() === 'heat';
+
+    function relativeTime(date) {
+        const minutes = Math.round((Date.now() - date) / 60000);
+        if (minutes < 60) return `${minutes} min sitten`;
+        const hours = minutes / 60;
+        return hours < 48 ? `${nf.format(hours)} h sitten` : `${Math.round(hours / 24)} vrk sitten`;
+    }
+
+    function deviationClass(deviation) {
+        const abs = Math.abs(deviation);
+        return abs <= BAND ? 'ok' : abs <= 0.5 ? 'warn' : 'bad';
+    }
+
+    function renderStatus() {
+        const last = entries[entries.length - 1];
+        const deviation = last.indoor_temp - last.indoor_wanted_temp;
+        document.getElementById('indoorValue').textContent = temp(last.indoor_temp);
+        const chip = document.getElementById('deviationChip');
+        chip.className = `chip ${deviationClass(deviation)}`;
+        chip.textContent = Math.abs(deviation) <= BAND
+            ? 'Tavoitteessa'
+            : `${deviation > 0 ? '+' : '−'}${nf.format(Math.abs(deviation))} °C ${deviation > 0 ? 'yli' : 'alle'} tavoitteen`;
+        document.getElementById('wantedValue').textContent = temp(last.indoor_wanted_temp);
+        document.getElementById('pumpValue').textContent = `${pumpTarget(last) ?? '–'} °C`;
+        document.getElementById('outdoorValue').textContent = temp(last.outdoor_temp);
+        document.getElementById('lastRunValue').textContent = relativeTime(last.time);
+
+        const alerts = [];
+        const hoursSince = (Date.now() - last.time) / 3600000;
+        if (hoursSince > STALE_HOURS) alerts.push(['bad', `Viimeisimmästä ajosta on ${nf.format(hoursSince)} tuntia – tarkista GitHub Actions.`]);
+        if (!isHeating(last)) alerts.push(['warn', 'Pumppu ei ollut lämmitystilassa viimeisimmässä ajossa – lämmitys palautettiin.']);
+        if (last.outdoor_temp == null) alerts.push(['warn', 'Sääpalvelu ei vastannut viimeisimmässä ajossa – ohjaus jatkui ilman ennakointia.']);
+        document.getElementById('alerts').innerHTML = alerts
+            .map(([level, text]) => `<div class="alert ${level === 'warn' ? 'warn' : ''}" role="alert">${text}</div>`).join('');
+    }
+
+    function renderStats(visible) {
+        const deviations = visible.map(e => e.indoor_temp - e.indoor_wanted_temp);
+        const inBand = deviations.filter(d => Math.abs(d) <= BAND).length;
+        const mean = deviations.reduce((sum, d) => sum + d, 0) / (deviations.length || 1);
+        const commands = visible.filter(e => e.json_data?.acState).length;
+        const days = Math.min(rangeHours, (Date.now() - visible[0]?.time) / 3600000 || rangeHours) / 24;
+        document.getElementById('statInBand').textContent = visible.length ? pct.format(inBand / visible.length) : '–';
+        document.getElementById('statMean').textContent = visible.length ? `${mean >= 0 ? '+' : '−'}${nf.format(Math.abs(mean))} °C` : '–';
+        document.getElementById('statCommands').textContent = commands;
+        document.getElementById('statRuns').textContent = visible.length ? nf.format(visible.length / days) : '–';
+    }
+
+    // Shades the target band behind the lines
+    const targetBandPlugin = {
+        id: 'targetBand',
+        beforeDatasetsDraw(chart) {
+            const wanted = chart.options.plugins.targetBand.wanted;
+            if (wanted == null) return;
+            const { ctx, chartArea, scales: { y } } = chart;
+            const top = y.getPixelForValue(wanted + BAND);
+            const bottom = y.getPixelForValue(wanted - BAND);
+            ctx.save();
+            ctx.fillStyle = css('--band');
+            ctx.fillRect(chartArea.left, top, chartArea.right - chartArea.left, bottom - top);
+            ctx.restore();
         }
+    };
 
-        function getCurrentDate() {
-            const today = new Date();
-            const dd = String(today.getDate()).padStart(2, '0');
-            const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
-            const yyyy = today.getFullYear();
+    function renderChart() {
+        const since = Date.now() - rangeHours * 3600000;
+        const visible = entries.filter(e => e.time >= since);
+        renderStats(visible);
 
-            return `${yyyy}-${mm}-${dd}`;
-        }
+        const points = (value) => visible.map(e => ({ x: e.time, y: value(e) }));
+        // Events: commands sent, manual target changes reverted by the script, runs without weather data
+        const commands = visible.filter(e => e.json_data?.acState).map(e => ({ x: e.time, y: pumpTarget(e) }));
+        const manual = visible.filter((e, i) => {
+            const prev = entries[entries.indexOf(e) - 1];
+            return prev && e.indoor_prev_target_temp != null && e.indoor_prev_target_temp !== pumpTarget(prev);
+        }).map(e => ({ x: e.time, y: e.indoor_prev_target_temp }));
+        const noWeather = visible.filter(e => e.outdoor_temp == null).map(e => ({ x: e.time, y: e.indoor_temp }));
+        const wanted = visible.length ? visible[visible.length - 1].indoor_wanted_temp : null;
 
-        const currentDate = getCurrentDate();
-        console.log('Current Date:', currentDate); // Debugging log
+        const color = { indoor: css('--indoor'), target: css('--target'), outdoor: css('--outdoor'),
+                        text: css('--muted'), grid: css('--grid'), warn: css('--warn'), bad: css('--bad') };
+        const data = {
+            datasets: [
+                { label: 'Sisälämpö', data: points(e => e.indoor_temp), borderColor: color.indoor, backgroundColor: color.indoor,
+                  borderWidth: 2.5, pointRadius: rangeHours <= 24 ? 3 : 0, tension: 0.25, yAxisID: 'y' },
+                { label: 'Pumpun asetus', data: points(pumpTarget), borderColor: color.target, backgroundColor: color.target,
+                  borderWidth: 2, borderDash: [6, 4], pointRadius: 0, stepped: 'before', yAxisID: 'y' },
+                { label: 'Ulkona', data: points(e => e.outdoor_temp), borderColor: color.outdoor, backgroundColor: color.outdoor,
+                  borderWidth: 1.5, borderDash: [2, 3], pointRadius: 0, tension: 0.25, spanGaps: true, yAxisID: 'y2' },
+                { label: 'Komento pumpulle', type: 'scatter', data: commands, backgroundColor: color.target,
+                  pointStyle: 'triangle', pointRadius: 6, yAxisID: 'y' },
+                { label: 'Käsimuutos (kumottu)', type: 'scatter', data: manual, backgroundColor: color.bad,
+                  pointStyle: 'crossRot', pointRadius: 7, borderColor: color.bad, borderWidth: 2, yAxisID: 'y' },
+                { label: 'Sääpalvelu ei vastannut', type: 'scatter', data: noWeather, backgroundColor: color.warn,
+                  pointStyle: 'rectRot', pointRadius: 6, yAxisID: 'y' },
+            ].filter(ds => ds.type !== 'scatter' || ds.data.length)
+        };
 
-        function updateChart(view) {
-            currentView = view;
-            const now = new Date();
-            const startDateInput = document.getElementById('startDate');
-            let startDate = new Date(startDateInput.value + 'T00:00'); // Local midnight
-            if (isNaN(startDate)) {
-                startDate = now;
-            }
-            let filteredData;
-            let rangeStart;
-            let rangeEnd;
-
-            if (view === 'daily') {
-                const nextDay = new Date(startDate);
-                nextDay.setDate(startDate.getDate() + 1);
-                rangeStart = startDate;
-                rangeEnd = nextDay;
-                filteredData = allData.filter(entry => {
-                    const entryDate = parseTimestamp(entry.timestamp);
-                    return entryDate >= startDate && entryDate < nextDay;
-                });
-            } else if (view === 'weekly') {
-                const nextDay = new Date(startDate);
-                nextDay.setDate(startDate.getDate() + 1);
-                const oneWeekAgo = new Date(startDate);
-                oneWeekAgo.setDate(startDate.getDate() - 6);
-                rangeStart = oneWeekAgo;
-                rangeEnd = nextDay;
-                filteredData = allData.filter(entry => {
-                    const entryDate = parseTimestamp(entry.timestamp);
-                    return entryDate >= oneWeekAgo && entryDate < nextDay;
-                });
-            }
-
-            const timestamps = filteredData.map(entry => parseTimestamp(entry.timestamp));
-            const indoorTemps = filteredData.map(entry => entry.indoor_temp);
-            const outdoorTemps = filteredData.map(entry => entry.outdoor_temp);
-            // The heat pump target after the run: the target sent to Sensibo, or the unchanged previous target if nothing was sent
-            const indoorTargetTemps = filteredData.map(entry => entry.json_data?.acState?.targetTemperature ?? entry.indoor_prev_target_temp);
-            const indoorWantedTemps = filteredData.map(entry => entry.indoor_wanted_temp);
-
-            console.log('Timestamps:', timestamps); // Debugging log
-            console.log('Indoor Temps:', indoorTemps); // Debugging log
-            console.log('Outdoor Temps:', outdoorTemps); // Debugging log
-            console.log('Indoor Target Temps:', indoorTargetTemps); // Debugging log
-            console.log('Indoor Wanted Temps:', indoorWantedTemps); // Debugging log
-
-            const ctx = document.getElementById('temperatureChart').getContext('2d');
-            if (chart) {
-                chart.destroy();
-            }
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: timestamps,
-                    datasets: [
-                        {
-                            label: 'Indoor Temperature (°C)',
-                            data: indoorTemps,
-                            borderColor: 'rgba(255, 0, 0, 1)', // Red
-                            borderWidth: 1,
-                            fill: false,
-                            spanGaps: true
-                        },
-                        {
-                            label: 'Outdoor Temperature (°C)',
-                            data: outdoorTemps,
-                            borderColor: 'rgba(0, 0, 255, 1)', // Blue
-                            borderWidth: 1,
-                            fill: false,
-                            spanGaps: true
-                        },
-                        {
-                            label: 'Heat Pump Target Temperature (°C)',
-                            data: indoorTargetTemps,
-                            borderColor: 'rgba(199, 21, 133, 1)', // Magenta, light pink was hard to see on white
-                            borderWidth: 1,
-                            fill: false,
-                            spanGaps: true
-                        },
-                        {
-                            label: 'Indoor Wanted Temperature (°C)',
-                            data: indoorWantedTemps,
-                            borderColor: 'rgba(255, 165, 0, 1)', // Orange
-                            borderWidth: 1,
-                            fill: false,
-                            spanGaps: true
-                        }
-                    ]
+        const options = {
+            maintainAspectRatio: false,
+            animation: false,
+            interaction: { mode: 'nearest', axis: 'x', intersect: false },
+            scales: {
+                x: { type: 'time', min: since, max: Date.now(),
+                     time: { unit: rangeHours <= 24 ? 'hour' : 'day', tooltipFormat: 'd.M. HH:mm',
+                             displayFormats: { hour: 'HH:mm', day: 'd.M.' } },
+                     ticks: { color: color.text, maxRotation: 0, autoSkipPadding: 12 }, grid: { color: color.grid } },
+                y: { title: { display: true, text: 'Sisällä ja pumppu (°C)', color: color.text },
+                     ticks: { color: color.text }, grid: { color: color.grid } },
+                y2: { position: 'right', title: { display: true, text: 'Ulkona (°C)', color: color.text },
+                      ticks: { color: color.text }, grid: { drawOnChartArea: false } },
+            },
+            plugins: {
+                targetBand: { wanted },
+                legend: { labels: {
+                    color: color.text, usePointStyle: true, boxWidth: 10,
+                    // Lines as line symbols (with their dash pattern), event markers as their own symbols
+                    generateLabels: c => Chart.defaults.plugins.legend.labels.generateLabels(c).map(label =>
+                        c.data.datasets[label.datasetIndex].type === 'scatter' ? label : { ...label, pointStyle: 'line', lineWidth: 3 })
+                } },
+                tooltip: {
+                    mode: 'index', intersect: false,
+                    callbacks: { label: c => `${c.dataset.label}: ${temp(c.parsed.y)}` }
                 },
-                options: {
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            type: 'time',
-                            min: rangeStart,
-                            max: rangeEnd,
-                            time: {
-                                unit: view === 'daily' ? 'hour' : 'day',
-                                tooltipFormat: 'HH:mm', // 24-hour format for tooltips
-                                displayFormats: {
-                                    hour: 'HH:mm',
-                                    day: 'MMM dd'
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Time'
-                            }
-                        },
-                        y: {
-                            beginAtZero: false,
-                            title: {
-                                display: true,
-                                text: 'Temperature (°C)'
-                            }
-                        }
-                    }
-                }
-            });
+            },
+        };
+
+        if (chart) chart.destroy();
+        chart = new Chart(document.getElementById('chart'), { type: 'line', data, options, plugins: [targetBandPlugin] });
+    }
+
+    function selectRange(hours) {
+        rangeHours = hours;
+        try { localStorage.setItem('rangeHours', hours); } catch (e) { /* Private mode */ }
+        document.querySelectorAll('.segmented button').forEach(b => b.setAttribute('aria-pressed', Number(b.dataset.hours) === hours));
+        if (entries.length) renderChart();
+    }
+
+    async function load() {
+        const footer = document.getElementById('footer');
+        try {
+            // Always fetch the newest log instead of a cached copy
+            const response = await fetch('log.json', { cache: 'no-store' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            entries = (await response.json()).map(e => ({ ...e, time: parseTime(e.timestamp) }));
+            if (!entries.length) throw new Error('loki on tyhjä');
+            renderStatus();
+            renderChart();
+            footer.classList.remove('error');
+            footer.textContent = `Päivitetty ${new Date().toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })} · päivittyy itsestään 10 minuutin välein`;
+        } catch (error) {
+            footer.classList.add('error');
+            footer.textContent = `Lokin lataus epäonnistui (${error.message}). Yritetään uudelleen 10 minuutin kuluttua.`;
         }
-    </script>
+    }
+
+    document.querySelectorAll('.segmented button').forEach(b => b.addEventListener('click', () => selectRange(Number(b.dataset.hours))));
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => entries.length && renderChart());
+    selectRange([24, 168, 720].includes(rangeHours) ? rangeHours : 24);
+    load();
+    setInterval(load, REFRESH_MS);
+</script>
 </body>
 </html>
