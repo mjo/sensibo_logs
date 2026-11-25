@@ -199,7 +199,7 @@
 </main>
 
 <script>
-    const BAND = 0.3;                 // Target band ± °C
+    const BAND = 0.25;                // Target band ± °C around the controlled value: 21.5-22 °C
     const STALE_HOURS = 8;            // Warn when the last run is older than this
     const REFRESH_MS = 10 * 60 * 1000;
     const nf = new Intl.NumberFormat('fi-FI', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
